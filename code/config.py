@@ -4,11 +4,22 @@
 For which systems the evaluation should be done.
 It needs to be in the results dir defined in dataset_info.py
 """
-RUN_FOR_SYSTEMS = ( "dubska_bmvc14", 
-                    "dubska_optimal_scale", 
-                    "dubska_optimal_scale_vp2", 
-                    "dubska_optimal_calib", 
-                    "dubska_optimal_calib_vp2")
+
+RUN_FOR_SYSTEMS = ( 'Transform3D_540_960_VP2VP3',)
+
+
+
+##RUN_FOR_SYSTEMS = ('Transform3D_480_270_VP2VP3',
+##                   'Transform3D_640_360_VP2VP3',
+##                   'Transform3D_960_540_VP2VP3',
+##                   'Transform3D_270_480_VP1VP2',
+##                   'Transform3D_360_640_VP1VP2',
+##                   'Transform2D_640_360_VP2VP3',
+##                   'Transform2D_360_640_VP1VP2',
+##                   'MaskRCNN_1024_576')
+
+#RUN_FOR_SYSTEMS = ( "SochorCVIU_Edgelets_BBScale_Reg",
+#                    "SochorCVIU_Edgelets_ManualScale")
                     
 """
 For which video the evaluation should be done. 
@@ -16,7 +27,7 @@ You can use keys A,B or C.
 See dataset_info.py for more information and 
 training videos for each splitting
 """
-RUN_FOR_VIDEOS = SPLIT_TEST_VIDEOS["A"]
+RUN_FOR_VIDEOS = SPLIT_TEST_VIDEOS["C"]
 
 
 """
@@ -26,7 +37,7 @@ then the threshold, the trajectory is shown
 WARNING: You need to delete the cached results (or use -rc argument)
 """
 SHOW_BAD_FOR_SYSTEMS = set()
-SHOW_BAD_THRESHOLD = 30
+SHOW_BAD_THRESHOLD = 10
 
 
 """
@@ -49,16 +60,6 @@ SHOW_ERRORS = False
 Conversions for plotting and printing statistics
 """
 def labelConversion(systemId):
-    if systemId == "dubska_bmvc14":
-        return "FullACC [7]"
-    elif systemId == "dubska_optimal_scale":
-        return "OptScale"
-    elif systemId == "dubska_optimal_scale_vp2":
-        return "OptScaleVP2"
-    elif systemId == "dubska_optimal_calib":
-        return "OptCalib"
-    elif systemId == "dubska_optimal_calib_vp2":
-        return "OptCalibVP2"
     return systemId
 
 """
@@ -66,28 +67,6 @@ Styles for cumulative histograms
 """
 def plotStyleCumulativeHist(systemId):
     styleDict = {"linewidth":2}
-    styleDict["markevery"] = 0.075
-    styleDict["markersize"] = 10
-
-    if systemId == "dubska_bmvc14":
-        styleDict["color"] = "black"
-        styleDict["marker"] = "o"
-    elif systemId == "dubska_optimal_scale":
-        styleDict["color"] = "#00B0F0"
-        styleDict["marker"] = "^"
-    elif systemId == "dubska_optimal_scale_vp2":
-        styleDict["color"] = "#69793e"
-        styleDict["marker"] = "v"
-    elif systemId == "dubska_optimal_calib":
-        styleDict["color"] = "#A40000"
-        styleDict["marker"] = "d"
-    elif systemId == "dubska_optimal_calib_vp2":
-        styleDict["color"] = "#FF9900"
-        styleDict["marker"] = "s"
-
-
-
-    
     return styleDict
 
 
@@ -96,17 +75,5 @@ Styles for error histograms
 """
 def plotStyleErrorHist(systemId):
     styleDict = {"linewidth":2}
-        
-    if systemId == "dubska_bmvc14":
-        styleDict["color"] = "black"
-    elif systemId == "dubska_optimal_scale":
-        styleDict["color"] = "#00B0F0"
-    elif systemId == "dubska_optimal_scale_vp2":
-        styleDict["color"] = "#69793e"
-    elif systemId == "dubska_optimal_calib":
-        styleDict["color"] = "#A40000"
-    elif systemId == "dubska_optimal_calib_vp2":
-        styleDict["color"] = "#FF9900"
-    
     return styleDict
     

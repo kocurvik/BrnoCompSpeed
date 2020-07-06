@@ -11,8 +11,12 @@ if platform.system() == "Windows":
 else:
     TRANS_PATH = lambda p: p
 
-DATASET_BASE_PATH = TRANS_PATH("../dataset/")
-RESULTS_DIR = TRANS_PATH("../results/")
+DATASET_BASE_PATH = TRANS_PATH("D:/Skola/PhD/data/2016-ITS-BrnoCompSpeed/dataset/")
+RESULTS_DIR = TRANS_PATH("D:/Skola/PhD/data/2016-ITS-BrnoCompSpeed/results/")
+
+# DATASET_BASE_PATH = TRANS_PATH("/home/k/kocur15/data/2016-ITS-BrnoCompSpeed/dataset/")
+# RESULTS_DIR = TRANS_PATH("/home/k/kocur15/data/2016-ITS-BrnoCompSpeed/results/")
+
 
 DATASET_SESSIONS = {
     "session0": {
@@ -77,14 +81,25 @@ DATASET_SESSIONS = {
 ALL_SESSIONS = set(DATASET_SESSIONS.keys())
 
 ALL_VIDEOS = []
+#ALL_VIDEOS.append(("session5","left"))
 for _sId in sorted(DATASET_SESSIONS):
+#    if _sId == "session5":
+#        for _rId in ("center", "right"):
+#            ALL_VIDEOS.append((_sId, _rId))
+#    else:
+#        for _rId in ("left", "center", "right"):
+#            ALL_VIDEOS.append((_sId, _rId))
     for _rId in ("left", "center", "right"):
         ALL_VIDEOS.append((_sId, _rId))
+       
 
 SPLIT_TRAIN_SESSIONS = {}
 SPLIT_TRAIN_SESSIONS["A"] = {"session0"}
 SPLIT_TRAIN_SESSIONS["B"] = SPLIT_TRAIN_SESSIONS["A"] | {"session1", "session2"}
 SPLIT_TRAIN_SESSIONS["C"] = SPLIT_TRAIN_SESSIONS["B"] | {"session3"}
+SPLIT_TRAIN_SESSIONS["K"] = SPLIT_TRAIN_SESSIONS["C"] | {"session4", "session5"}
+SPLIT_TRAIN_SESSIONS["L"] = SPLIT_TRAIN_SESSIONS["C"] | {"session5", "session6"}
+
 
 SPLIT_TEST_SESSIONS = dict(map(lambda i: (i[0], ALL_SESSIONS-i[1]), SPLIT_TRAIN_SESSIONS.iteritems()))
 

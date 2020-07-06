@@ -272,7 +272,6 @@ def computeFalsePositives(gtData, matches, data):
                 data["cars"])
     return len(filter(lambda i: i["id"] not in matchedCars, filtered))
 
-
 def computeErrors(matches, errorType = "absolute"):
     filtered = filter(lambda i: i["matched"] and i["valid"], matches)
     errorFn = lambda gt, measured: abs(gt-measured)
@@ -287,6 +286,20 @@ def computeRecall(matches):
     valid = filter(lambda i: i["valid"], matches)
     return len(filter(lambda i: i["matched"], valid))/len(valid)
 
+
+#%%
+"""
+##############################################################
+################## SPEED SCALE COMPUTATION ###################
+##############################################################
+"""
+def adjustSpeedScale(matches):
+    rel_vals = np.array([m['gtSpeed'] / m['speed'] for m in matches if m["matched"] and m["valid"]])
+    scale = np.median(rel_vals)
+    # print(scale)
+    for m in matches:
+        if m['matched']:
+            m['speed'] *= scale
 
 #%%
 """
@@ -312,6 +325,7 @@ def showErrorStats(systemsData):
             videoErrorsAbs = computeErrors(videoData["matches"], "absolute")
             videoErrorsRel = computeErrors(videoData["matches"], "relative")
             videoErrorsSign = computeErrors(videoData["matches"], "absoluteSign")
+            # videoErrorsAbs = computeErrors(videoData["matches"], "absoluteSign")
             results[k][videoId] = {"abs": getErrorsStats(videoErrorsAbs), "rel": getErrorsStats(videoErrorsRel)}
             errorsRel += videoErrorsRel
             errorsAbs += videoErrorsAbs
@@ -391,9 +405,11 @@ def showFalsePositives(systemsData):
     tabulateData = []
     for k in RUN_FOR_SYSTEMS:
         data = systemsData[k]
-        totalFalsePositives = sum(map(lambda i: i["falsePositives"], data.itervalues()))
+        # totalFalsePositives = sum(map(lambda i: i["falsePositives"], data.itervalues()))
+        totalFalsePositives = np.mean(map(lambda i: 1 - (i["falsePositives"]/len(i["data"]["cars"])), data.itervalues()))
         tabulateData.append((labelConversion(k), totalFalsePositives))
-    print tabulate(tabulateData, headers=("system", "false positives"))
+    # print tabulate(tabulateData, headers=("system", "false positives"))
+    print tabulate(tabulateData, headers=("system", "mean precision"))
 
 
 def showRecalls(systemsData):
@@ -483,6 +499,14 @@ def evalCamCalibWithScale(distances, projector, scale):
         
     return relErrors, absErrors
 
+
+def getCamCalibBestScale(distances, projector, scale):
+    relErrors = []
+    for it in distances:
+        realDist = it["distance"]
+        measuredDist = scale * np.linalg.norm(projector(it["p1"]) - projector(it["p2"]))
+        relErrors.append((measuredDist - realDist) / realDist)
+    return scale * np.mean(relErrors)
 
     
 def evalPureCalibration(distances, projector):
@@ -613,6 +637,10 @@ if __name__ == "__main__":
                         dest="noShow", action="store_const",
                         const=True, default=False,
                         help="Do not show figures")
+    parser.add_argument("-sc, --speed-scale",
+                        dest='computeSpeedScale', action='store_const',
+                        const=True, default=False,
+                        help="Calculate optimal speed to minimize speed measurement error.")
 
     args = parser.parse_args()
 
@@ -637,17 +665,26 @@ if __name__ == "__main__":
                 pTran = lambda p: os.path.join(getPathForRecording(sessionId, recordingId), p)    
                 with open(os.path.join(RESULTS_DIR, "%s_%s"%(sessionId, recordingId), "system_%s.json"%system)) as f:
                     data = json.load(f)
+                    # data["camera_calibration"]["scale"] = 1.0
                     gtData = loadCache(pTran("gt_data.pkl"))
                     prefilterData(data, gtData)
                     videoInfo, errorsCount = calculateSpeeds(sessionId, recordingId, data, gtData, system)
                     matches = computeMatches(gtData, data, sessionId, recordingId, system)
                     falsePositives = computeFalsePositives(gtData, matches, data) + errorsCount
+
+                    print data["camera_calibration"]
                     
                     vp1, vp2, vp3, pp, roadPlane, focal = computeCameraCalibration(data["camera_calibration"]["vp1"],
                                                             data["camera_calibration"]["vp2"],
                                                             data["camera_calibration"]["pp"])
-                    projector = lambda p: getWorldCoordinagesOnRoadPlane(p, focal, roadPlane, pp)                                                                                      
-                    relScaleErrors, absScaleErrors = evalCamCalibWithScale(gtData["distanceMeasurement"], projector, data["camera_calibration"]["scale"])                    
+
+                    projector = lambda p: getWorldCoordinagesOnRoadPlane(p, focal, roadPlane, pp)
+
+                    if args.computeSpeedScale:
+                        adjustSpeedScale(matches)
+
+
+                    relScaleErrors, absScaleErrors = evalCamCalibWithScale(gtData["distanceMeasurement"], projector, data["camera_calibration"]["scale"])
                     relCalibErrors, absCalibErrors = evalPureCalibration(gtData["distanceMeasurement"], projector)  
                     
                     systemsData[system][(sessionId, recordingId)] = {"matches": matches,
