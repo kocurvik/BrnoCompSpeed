@@ -11,11 +11,12 @@ if platform.system() == "Windows":
 else:
     TRANS_PATH = lambda p: p
 
-DATASET_BASE_PATH = TRANS_PATH("D:/Skola/PhD/data/2016-ITS-BrnoCompSpeed/dataset/")
-RESULTS_DIR = TRANS_PATH("D:/Skola/PhD/data/2016-ITS-BrnoCompSpeed/results/")
-
-# DATASET_BASE_PATH = TRANS_PATH("/home/k/kocur15/data/2016-ITS-BrnoCompSpeed/dataset/")
-# RESULTS_DIR = TRANS_PATH("/home/k/kocur15/data/2016-ITS-BrnoCompSpeed/results/")
+if os.name == 'nt':
+    DATASET_BASE_PATH = TRANS_PATH("D:/Skola/PhD/data/2016-ITS-BrnoCompSpeed/dataset/")
+    RESULTS_DIR = TRANS_PATH("D:/Skola/PhD/data/2016-ITS-BrnoCompSpeed/results/")
+else:
+    DATASET_BASE_PATH = TRANS_PATH("/home/kocurvik/data/2016-ITS-BrnoCompSpeed/dataset/")
+    RESULTS_DIR = TRANS_PATH("/home/kocurvik/data/2016-ITS-BrnoCompSpeed/results/")
 
 
 DATASET_SESSIONS = {
