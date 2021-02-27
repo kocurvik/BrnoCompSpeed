@@ -656,7 +656,7 @@ if __name__ == "__main__":
                         const=True, default=False,
                         help="Calculate optimal speed to minimize speed measurement error.")
     parser.add_argument("-is, --ignore-speed",
-                        dest='computeMeasurementOnly', action='store_const',
+                        dest='ignoreSpeed', action='store_const',
                         const=True, default=False,
                         help="Do not calculate vehicle speeds.")
 
@@ -706,36 +706,58 @@ if __name__ == "__main__":
                     # data["camera_calibration"]["scale"] = 1.0
                     gtData = loadCache(pTran("gt_data.pkl"))
                     prefilterData(data, gtData)
-                    videoInfo, errorsCount = calculateSpeeds(sessionId, recordingId, data, gtData, system)
-                    matches = computeMatches(gtData, data, sessionId, recordingId, system)
-                    falsePositives = computeFalsePositives(gtData, matches, data) + errorsCount
+                    if args.ignoreSpeed:
+                        print data["camera_calibration"]
+                        vp1, vp2, vp3, pp, roadPlane, focal = computeCameraCalibration(
+                            data["camera_calibration"]["vp1"],
+                            data["camera_calibration"]["vp2"],
+                            data["camera_calibration"]["pp"])
+
+                        projector = lambda p: getWorldCoordinagesOnRoadPlane(p, focal, roadPlane, pp)
+
+                        videoInfo = {"roadPlane": roadPlane, "focal": focal, "pp": pp}
+                        relScaleErrors, absScaleErrors = evalCamCalibWithScale(gtData["distanceMeasurement"], projector, data["camera_calibration"]["scale"])
+                        relCalibErrors, absCalibErrors = evalPureCalibration(gtData["distanceMeasurement"], projector)
+
+                        systemsData[system][(sessionId, recordingId)] = {"data": data,
+                                                                         "videoInfo": videoInfo,
+                                                                         "gtData": gtData,
+                                                                         "relScaleErrors": relScaleErrors,
+                                                                         "absScaleErrors": absScaleErrors,
+                                                                         "relCalibErrors": relCalibErrors,
+                                                                         "absCalibErrors": absCalibErrors}
+
+                    else:
+                        videoInfo, errorsCount = calculateSpeeds(sessionId, recordingId, data, gtData, system)
+                        matches = computeMatches(gtData, data, sessionId, recordingId, system)
+                        falsePositives = computeFalsePositives(gtData, matches, data) + errorsCount
 
 
 
-                    print data["camera_calibration"]
-                    
-                    vp1, vp2, vp3, pp, roadPlane, focal = computeCameraCalibration(data["camera_calibration"]["vp1"],
-                                                            data["camera_calibration"]["vp2"],
-                                                            data["camera_calibration"]["pp"])
+                        print data["camera_calibration"]
 
-                    projector = lambda p: getWorldCoordinagesOnRoadPlane(p, focal, roadPlane, pp)
+                        vp1, vp2, vp3, pp, roadPlane, focal = computeCameraCalibration(data["camera_calibration"]["vp1"],
+                                                                data["camera_calibration"]["vp2"],
+                                                                data["camera_calibration"]["pp"])
 
-                    if args.computeSpeedScale:
-                        adjustSpeedScale(matches)
+                        projector = lambda p: getWorldCoordinagesOnRoadPlane(p, focal, roadPlane, pp)
+
+                        if args.computeSpeedScale:
+                            adjustSpeedScale(matches)
 
 
-                    relScaleErrors, absScaleErrors = evalCamCalibWithScale(gtData["distanceMeasurement"], projector, data["camera_calibration"]["scale"])
-                    relCalibErrors, absCalibErrors = evalPureCalibration(gtData["distanceMeasurement"], projector)  
-                    
-                    systemsData[system][(sessionId, recordingId)] = {"matches": matches,
-                                                                     "falsePositives": falsePositives,
-                                                                     "data": data,
-                                                                     "videoInfo": videoInfo,
-                                                                     "gtData": gtData,
-                                                                     "relScaleErrors": relScaleErrors,
-                                                                     "absScaleErrors": absScaleErrors,
-                                                                     "relCalibErrors": relCalibErrors,
-                                                                     "absCalibErrors": absCalibErrors}                    
+                        relScaleErrors, absScaleErrors = evalCamCalibWithScale(gtData["distanceMeasurement"], projector, data["camera_calibration"]["scale"])
+                        relCalibErrors, absCalibErrors = evalPureCalibration(gtData["distanceMeasurement"], projector)
+
+                        systemsData[system][(sessionId, recordingId)] = {"matches": matches,
+                                                                         "falsePositives": falsePositives,
+                                                                         "data": data,
+                                                                         "videoInfo": videoInfo,
+                                                                         "gtData": gtData,
+                                                                         "relScaleErrors": relScaleErrors,
+                                                                         "absScaleErrors": absScaleErrors,
+                                                                         "relCalibErrors": relCalibErrors,
+                                                                         "absCalibErrors": absCalibErrors}
         print "Saving results to file %s"%RESULTS_CACHE_FILE
         saveCache(RESULTS_CACHE_FILE, systemsData)
     else:
@@ -757,10 +779,10 @@ if __name__ == "__main__":
     pureCalibResults = showPureCamCalibErrors(systemsData)
     scaleResults = showScaleCamCalibErrors(systemsData)
 
-    systemsData = keepOnlyAlwaysDetected(systemsData)
-    distErrorSign, scaleVP1Results = showDistanceMeasurementErrors(systemsData)
+    if not args.ignoreSpeed:
+        systemsData = keepOnlyAlwaysDetected(systemsData)
+        distErrorSign, scaleVP1Results = showDistanceMeasurementErrors(systemsData)
 
-    if not args.computeMeasurementOnly:
         absErrors, relErrors, signErrors, speedResults = showErrorStats(systemsData)
         showFalsePositives(systemsData)
         print
