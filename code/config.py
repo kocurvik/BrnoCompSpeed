@@ -5,8 +5,26 @@ For which systems the evaluation should be done.
 It needs to be in the results dir defined in dataset_info.py
 """
 
-RUN_FOR_SYSTEMS = ( 'Transform3D_540_960_VP2VP3',)
+# RUN_FOR_SYSTEMS = ( 'Transform3D_540_960_VP2VP3',)
 
+RUN_FOR_SYSTEMS = ( "dubska_bmvc14",
+                    "SochorCVIU_Edgelets_BBScale_Reg",
+                    "SochorCVIU_Edgelets_ManualScale",
+                    "CVWW2019_Transform2D",
+                    "CVWW2019_Transform3D",
+                    "Transform3D_480_270_VP2VP3",
+                    "Transform3D_640_360_VP2VP3",
+                    "Transform3D_960_540_VP2VP3",
+                    "Transform3D_270_480_VP1VP2",
+                    "Transform3D_360_640_VP1VP2",
+                    "Transform3D_540_960_VP1VP2",
+                    "Transform2D_640_360_VP2VP3",
+                    "Transform2D_360_640_VP1VP2",
+                    "Orig2D_640_360",
+                    "MaskRCNN_1024_576")
+
+RUN_FOR_SYSTEMS = ( "dubska_optimal_scale",
+                    "VPout_VP1VP2_resnet_orig_normalized_aug_0.0ps_10cd_128in_1.0s_32b_2_r100_0.5c")
 
 
 ##RUN_FOR_SYSTEMS = ('Transform3D_480_270_VP2VP3',
@@ -27,7 +45,7 @@ You can use keys A,B or C.
 See dataset_info.py for more information and 
 training videos for each splitting
 """
-RUN_FOR_VIDEOS = SPLIT_TEST_VIDEOS["C"]
+RUN_FOR_VIDEOS = SPLIT_TEST_VIDEOS["Q"]
 
 
 """
