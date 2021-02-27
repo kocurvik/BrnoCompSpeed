@@ -14,7 +14,9 @@ RUN_FOR_SYSTEMS = ["SochorCVIU_Edgelets_ManualScale",  "SochorCVIU_ITS15_ManualS
                    "SochorCVIU_Edgelets_SpeedScale", "SochorCVIU_ITS15_SpeedScale",
                    "dubska_bmvc14", "dubska_optimal_scale", "SochorCVIU_ITS15_BVMC14",
                    "SochorCVIU_ManualCalib_ManualScale",  "dubska_optimal_calib",
-                   "dubska_optimal_scale_vp2", "VPout_VP1VP2_resnet_orig_normalized_aug_25.128in_1.0s_32b_2_r100_0.5c"]
+                   "dubska_optimal_scale_vp2", 
+                   "VPout_VP1VP2_resnet_orig_normalized_aug_0.0ps_10cd_128in_1.0s_32b_2_r100_0.5c",
+                   "VPout_VP1VP2_resnet_orig_normalized_aug_25.0ps_10cd_128in_1.0s_32b_2_r100_0.5c"]
                     
 """
 For which video the evaluation should be done. 
