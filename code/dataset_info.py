@@ -84,8 +84,8 @@ ALL_SESSIONS = set(DATASET_SESSIONS.keys())
 ALL_VIDEOS = []
 #ALL_VIDEOS.append(("session5","left"))
 for _sId in sorted(DATASET_SESSIONS):
-    for _rId in ("center",):
-    # for _rId in ("left", "center", "right"):
+    # for _rId in ("center",):
+    for _rId in ("left", "center", "right"):
         ALL_VIDEOS.append((_sId, _rId))
        
 

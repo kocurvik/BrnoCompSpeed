@@ -24,7 +24,7 @@ You can use keys A,B or C.
 See dataset_info.py for more information and 
 training videos for each splitting
 """
-RUN_FOR_VIDEOS = SPLIT_TEST_VIDEOS["C"]
+RUN_FOR_VIDEOS = SPLIT_TEST_VIDEOS["A"]
 
 
 """
