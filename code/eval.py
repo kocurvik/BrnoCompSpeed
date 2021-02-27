@@ -307,6 +307,20 @@ def adjustSpeedScale(matches):
 ####################### ERROR TABLES #########################
 ##############################################################
 """
+def keepOnlyAlwaysDetected(systemsData):
+    for videoId in RUN_FOR_VIDEOS:
+        valid_ids = []
+        for i, k in enumerate(RUN_FOR_SYSTEMS):
+            if i == 0:
+                valid_ids = [match['gtId'] for match in systemsData[k][videoId]["matches"] if match["matched"]]
+            ids = [match['gtId'] for match in systemsData[k][videoId]["matches"] if match["matched"]]
+            valid_ids = [id for id in valid_ids if id in ids]
+
+        for k in RUN_FOR_SYSTEMS:
+            systemsData[k][videoId]["matches"] = [match for match in systemsData[k][videoId]["matches"] if match["matched"] and match["gtId"] in valid_ids]
+
+    return systemsData
+
 def showErrorStats(systemsData):
     print "SPEED ERROR STATS"
     outputAbs = {}
@@ -641,6 +655,11 @@ if __name__ == "__main__":
                         dest='computeSpeedScale', action='store_const',
                         const=True, default=False,
                         help="Calculate optimal speed to minimize speed measurement error.")
+    parser.add_argument("-is, --ignore-speed",
+                        dest='computeMeasurementOnly', action='store_const',
+                        const=True, default=False,
+                        help="Do not calculate vehicle speeds.")
+
 
     args = parser.parse_args()
 
@@ -655,6 +674,25 @@ if __name__ == "__main__":
     print "RUN_FOR_VIDEOS: ", RUN_FOR_VIDEOS
     RUN_FOR_SYSTEMS = list(RUN_FOR_SYSTEMS)
     print "RUN_FOR_SYSTEMS: ", RUN_FOR_SYSTEMS
+
+    # for sessionId, recordingId in RUN_FOR_VIDEOS:
+    #     pTran = lambda p: os.path.join(getPathForRecording(sessionId, recordingId), p)
+    #     if not os.path.exists(pTran("gt_easy.pkl")):
+    #         gtData = loadCache(pTran("gt_data.pkl"))
+    #         all_ids = [car["carId"] for car in gtData["cars"]]
+    #         with open('gt_easy.pkl', 'wb') as f:
+    #             cPickle.dump(all_ids, f)
+
+
+    easy_gt_ids = []
+
+    # for sessionId, recordingId in RUN_FOR_VIDEOS:
+    #     pTran = lambda p: os.path.join(getPathForRecording(sessionId, recordingId), p)
+    #     if not os.path.exists(pTran("gt_easy.pkl")):
+    #         gtData = loadCache(pTran("gt_data.pkl"))
+    #         all_ids = [car["carId"] for car in gtData["cars"]]
+    #         with open('gt_easy.pkl', 'wb') as f:
+    #             cPickle.dump(all_ids, f)
 
     if not os.path.exists(RESULTS_CACHE_FILE) or args.recomputeCache:
         systemsData = {}
@@ -671,6 +709,8 @@ if __name__ == "__main__":
                     videoInfo, errorsCount = calculateSpeeds(sessionId, recordingId, data, gtData, system)
                     matches = computeMatches(gtData, data, sessionId, recordingId, system)
                     falsePositives = computeFalsePositives(gtData, matches, data) + errorsCount
+
+
 
                     print data["camera_calibration"]
                     
@@ -716,30 +756,33 @@ if __name__ == "__main__":
 
     pureCalibResults = showPureCamCalibErrors(systemsData)
     scaleResults = showScaleCamCalibErrors(systemsData)
+
+    systemsData = keepOnlyAlwaysDetected(systemsData)
     distErrorSign, scaleVP1Results = showDistanceMeasurementErrors(systemsData)
-    
-    absErrors, relErrors, signErrors, speedResults = showErrorStats(systemsData)
-    showFalsePositives(systemsData)
-    print 
-    print
-    showRecalls(systemsData)
 
-    print
+    if not args.computeMeasurementOnly:
+        absErrors, relErrors, signErrors, speedResults = showErrorStats(systemsData)
+        showFalsePositives(systemsData)
+        print
+        print
+        showRecalls(systemsData)
 
-    fig = initFig()
-    absMaxError = showErrorCumHistogram(absErrors, "absolute", "km/h")
-    showSaveFig("speed_cum_error_histogram_abs.pdf", args)
-    
-    fig = initFig()
-    relMaxError = showErrorCumHistogram(relErrors, "relative", "%")
-    showSaveFig("speed_cum_error_histogram_rel.pdf", args)
-    
-    
+        print
 
-    #showErrorHistogram(signErrors, "speed", "km/h", 1)
-    #showSaveFig("error_histogram_speed.pdf", args)
-    #showErrorHistogram(distErrorSign, "distance", "m", 0.5)
-    #showSaveFig("error_histogram_distance.pdf", args)
+        fig = initFig()
+        absMaxError = showErrorCumHistogram(absErrors, "absolute", "km/h")
+        showSaveFig("speed_cum_error_histogram_abs.pdf", args)
+
+        fig = initFig()
+        relMaxError = showErrorCumHistogram(relErrors, "relative", "%")
+        showSaveFig("speed_cum_error_histogram_rel.pdf", args)
+
+
+
+        #showErrorHistogram(signErrors, "speed", "km/h", 1)
+        #showSaveFig("error_histogram_speed.pdf", args)
+        #showErrorHistogram(distErrorSign, "distance", "m", 0.5)
+        #showSaveFig("error_histogram_distance.pdf", args)
 
 
 
